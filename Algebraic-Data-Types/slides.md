@@ -18,23 +18,31 @@ css: './resources/style.css'
 
 ---
 
+## Disclaimer
+
+![Comrade](./resources/lenin.jpg)
+
+---
+
 ## Product Types
 
 ```ts
 class Pair<U, V> {
     constructor(
-        private x: U,
-        private y: V,
-    ) { }
-    /* .. */
+        x: U,
+        y: V,
+    ) { /*...*/ }
 }
 
 class Person {
   constructor(
-    public name: String,
-    public age: Number,
-  ) { }
+    name: String,
+    age: Number,
+    address: String,
+  ) { /* ... */ }
 }
+
+class Box<T> { constructor(private value: T) { /* ... */ } }
 ```
 
 ```haskell
@@ -134,3 +142,7 @@ Pair Boolean () ~~ Boolean
 ---
 
 ## Sum (Union) Types
+
+```ts
+
+```
