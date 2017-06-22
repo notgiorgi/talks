@@ -265,24 +265,62 @@ printPromise promise =
 ---
 
 ```haskell
-data Tree a
-  = Leaf
-  | Node (Tree a) a (Tree a)
+data Tree 
+  = Empty
+  | Leaf Int
+  | Node Tree Tree
 
-find :: a -> Tree a -> Bool
-find x Leaf = False
-find x (Node left value right) =
-  if x == value 
-    then True
-    else value > x ? find x right : find x left
+depth :: Tree -> Int
+depth Empty = 0
+depth (Leaf n) = 1
+depth (Node l r) = 1 + max (depth l) (depth r)
+```
 
-tree = (
-  Node Leaf 3 (
-    Node Leaf 7 Leaf
-  )
-)
+<===>
 
-find 9 tree -- True
+## if (x != null)
+
+```ts
+class Vector {
+  /* ... */
+  divide(that: Vector): Vector {
+    if (that.x !== 0 || that.y !== 0)
+      return new Vector(this.x / that.x, thix.y / that.y)
+    return null
+  }
+}
+
+/* ... */
+const v3 = v1.divide(v2)
+if (v3 !== null) {
+  v3.add(/* ... */)
+}
+```
+<===>
+
+## Fixed
+
+```ts
+type Vector = NullVector | FullVector
+
+class Vector {
+  /*...*/
+  divide(that: Vector): Vector {
+    if (that.x !== 0 || that.y !== 0)
+      return new FullVector(this.x / that.x, thix.y / that.y)
+    return new NullVector()
+  }
+}
+
+class NullVector {
+  /*...*/
+  divide(that: Vector): Vector { return this }
+}
+
+const v3 = v1
+  .divide(v2)
+  .add(v5)
+  .render()
 ```
 
 <===>
