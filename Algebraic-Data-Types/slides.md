@@ -2,7 +2,7 @@
 title: Algebraic Data Types
 separator: ---
 verticalSeparator: <===>
-theme: white
+theme: solarized
 highlightTheme: atom-one-dark
 revealOptions:
   transition: 'slide'
@@ -17,8 +17,6 @@ css: './resources/style.css'
 > by Giorgi Bagdavadze / @notgiorgi
 
 ---
-
-## Disclaimer
 
 ![Comrade](./resources/lenin.jpg)
 
@@ -50,6 +48,8 @@ data Pair u v = Pair u v
 
 data Person = Person String Int
 ```
+
+Note: Products of types represent a conjunction, “and,” of those types.
 
 <===>
 
@@ -93,6 +93,8 @@ Pair<Boolean, String> ~~ Pair<String, Boolean>
 Pair Bool String ~~ Pair String Bool
 ```
 
+Note: You could say, this is a mathematical proof, that the order you define members of your data structure in, doesn’t matter.
+
 <===>
 
 ### Isomorphism
@@ -112,11 +114,15 @@ function swap<U, V>(pair: Pair<U, V>): Pair<V, U> {
 ### Associative
 
 ```
-a * (b * c) == (a * b) * c
+a * (b * c) == (a * b) * c == a * b * c
 ```
 
 ```csharp
-Pair<bool, Pair<int, string>> ~~ Pair<Pair<bool, int>, string>
+Pair<bool, Pair<int, string>>
+~~
+Pair<Pair<bool, int>, string> 
+~~
+Triplet<bool, int, string>
 ```
 
 ```
@@ -144,5 +150,166 @@ Pair Boolean () ~~ Boolean
 ## Sum (Union) Types
 
 ```ts
+enum PromiseState = {
+  Pending,
+  Fulfilled,
+  Rejected,
+}
+```
 
+```ts
+interface Either<U, V> { /* ... */ }
+class Right<V> implements Either { /* ... */ }
+class Left<U> implements Either { /* ... */ }
+```
+
+```haskell
+data PromiseState = Pending | Fulfilled | Rejected
+
+data Either u v = Left u | Right v
+```
+
+<===>
+
+# Same Properties
+
+```haskell
+a + b == b + a
+
+Right a | Left b ~~ Left b | Right a
+
+
+a + (b + c) == (a + b) + c
+
+Pending | (Fulfilled | Rejected) ~~ (Pending | Fulfilled) | Rejected
+
+
+a + 0 = a = 0 + a
+
+Foo a | Bar Void ~~ Foo a
+```
+
+---
+
+## Mixed
+
+```haskell
+data Promise u v
+  = Pending [Listener]
+  | Rejected [Listener] u
+  | Fulfilled [Listener] v
+```
+
+<===>
+
+## Distributive property
+
+```haskell
+data Promise a b =
+  Promise [Listener] (
+      Pending
+    | Rejected a
+    | Fulfilled b
+  )
+```
+
+---
+
+## Pattern Matching
+
+```js
+switch (true) {
+  case promise instanceof Fulfilled:
+    console.log('Fulfilled!', promise.value)
+    break
+  case promise instanceof Rejected:
+    console.log('Rejected!', promise.error)
+    break
+  default:
+    throw new TypeError("Lol, ain't gonna happen")
+}
+```
+
+<===>
+
+## "Fixed"
+
+```js
+switch (true) {
+  case promise instanceof Pending:
+    console.log('Pending!', promise.value)
+    break
+  case promise instanceof Fulfilled:
+    console.log('Fulfilled!', promise.value)
+    break
+  case promise instanceof Rejected:
+    console.log('Rejected!', promise.error)
+    break
+  default:
+    throw new TypeError("Lol, ain't gonna happen")
+}
+```
+
+<===>
+
+## Actually fixed!
+
+```haskell
+printPromise promise =
+  case p of
+    Pending -> putStrLn "Pending!"
+    (Fulfilled value) -> putStrLn "Fulfilled!" ++ value
+    (Rejected error) -> putStrLn "Rejected!" ++ error
+```
+
+---
+
+```haskell
+data Tree a
+  = Leaf
+  | Node (Tree a) a (Tree a)
+
+find :: a -> Tree a -> Bool
+find x Leaf = False
+find x (Node left value right) =
+  if x == value 
+    then True
+    else value > x ? find x right : find x left
+
+tree = (
+  Node Leaf 3 (
+    Node Leaf 7 Leaf
+  )
+)
+
+find 9 tree -- True
+```
+
+<===>
+
+```haskell
+data Route
+  = Home
+  | Post Int
+  | Posts
+  | User Int
+  | UserPost Int Int
+  | Search String
+  | NotFound
+
+parseUrl :: Url -> Route
+parseUrl (Url "/Home" []) = Home
+parseUrl (Url "/Posts/:id" [id]) = Post id
+parseUrl (Url "UserPosts/:uID/:pID" [uID, pID]) = UserPost uID pID
+parseURl (Url "*") = NotFound
+-- etc
+
+requestHandler :: Route -> IO Response
+requestHandler Home = homepage
+requestHandler (Post id) = postPage id
+requestHandler NotFound = notFoundPage
+-- etc
+
+Server :: Request -> IO Response
+Server = requestHandler . parseUrl
 ```
