@@ -230,6 +230,8 @@ switch (true) {
 }
 ```
 
+Note: Misses `Pending` case
+
 <===>
 
 ## "Fixed"
@@ -250,6 +252,8 @@ switch (true) {
 }
 ```
 
+Note: gets non-existent `value` property on `Pending` and doens't know in compile time
+
 <===>
 
 ## Actually fixed!
@@ -261,6 +265,8 @@ printPromise promise =
     (Fulfilled value) -> putStrLn "Fulfilled!" ++ value
     (Rejected error) -> putStrLn "Rejected!" ++ error
 ```
+
+Note: cannot construct illegal Promise, cannot pattern match illegally, notified in compile time B)
 
 ---
 
