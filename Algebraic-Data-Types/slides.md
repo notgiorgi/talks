@@ -31,7 +31,17 @@ class Pair<U, V> {
         y: V,
     ) { /*...*/ }
 }
+```
 
+```haskell
+data Pair u v = Pair u v
+```
+
+Note: Products of types represent a conjunction, “and,” of those types.
+
+<===>
+
+```ts
 class Person {
   constructor(
     name: String,
@@ -40,16 +50,16 @@ class Person {
   ) { /* ... */ }
 }
 
-class Box<T> { constructor(private value: T) { /* ... */ } }
+class Box<T> {
+  constructor(private value: T) { /* ... */ } 
+}
 ```
 
 ```haskell
-data Pair u v = Pair u v
-
 data Person = Person String Int
-```
 
-Note: Products of types represent a conjunction, “and,” of those types.
+data Box a = B a
+```
 
 <===>
 
@@ -157,15 +167,24 @@ enum PromiseState = {
 }
 ```
 
+```haskell
+data PromiseState = Pending | Fulfilled | Rejected
+```
+
+<===>
+
 ```ts
-interface Either<U, V> { /* ... */ }
-class Right<V> implements Either { /* ... */ }
-class Left<U> implements Either { /* ... */ }
+interface Either<U, V> {/* ... */}
+class Right<V> implements Either {/* ... */}
+class Left<U> implements Either {/* ... */}
+
+interface Maybe<T> {/* ... */}
+class Just<T> {/* ... */}
+class Nothing {/* ... */}
 ```
 
 ```haskell
-data PromiseState = Pending | Fulfilled | Rejected
-
+data Maybe a = Just a | Nothing
 data Either u v = Left u | Right v
 ```
 
