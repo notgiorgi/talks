@@ -56,7 +56,11 @@ class Box<T> {
 ```
 
 ```haskell
-data Person = Person String Int
+data Person = Person
+  { name    :: String
+  , age     :: Int
+  , address :: String
+  }
 
 data Box a = B a
 ```
@@ -150,10 +154,15 @@ a * 1 == a == 1 * a
 ```ts
 Pair<Boolean, Unit> ~~ Boolean
 ```
-Note: Describe Unit
+
+
 ```haskell
-Pair Boolean () ~~ Boolean
+data Unit = Unit
+
+Pair Bool Unit ~~ Bool
 ```
+
+Note: Describe Unit
 
 ---
 
@@ -178,19 +187,26 @@ interface Either<U, V> {/* ... */}
 class Right<V> implements Either {/* ... */}
 class Left<U> implements Either {/* ... */}
 
-interface Maybe<T> {/* ... */}
-class Just<T> {/* ... */}
-class Nothing {/* ... */}
+interface List<T> {/* ... */}
+class Nil {/*...*/}
+class Cons<T> {/* ... */}
+
+type Paragraph = string | Array<string>
 ```
 
 ```haskell
-data Maybe a = Just a | Nothing
 data Either u v = Left u | Right v
+
+data List a = Nil | Cons a (Array a)
+
+data Paragraph = String | Array String
 ```
+
+Note: Paragraph abstracts away low level types, You only think about it once
 
 <===>
 
-# Same Properties
+## Same Properties
 
 ```haskell
 a + b == b + a
@@ -214,9 +230,9 @@ Foo a | Bar Void ~~ Foo a
 
 ```haskell
 data Promise u v
-  = Pending [Listener]
-  | Rejected [Listener] u
-  | Fulfilled [Listener] v
+  = Pending (Array Listener)
+  | Rejected (Array Listener) u
+  | Fulfilled (Array Listener) v
 ```
 
 <===>
@@ -225,7 +241,7 @@ data Promise u v
 
 ```haskell
 data Promise a b =
-  Promise [Listener] (
+  Promise (Array Listener) (
       Pending
     | Rejected a
     | Fulfilled b
@@ -275,6 +291,22 @@ Note: gets non-existent `value` property on `Pending` and doens't know in compil
 
 <===>
 
+## No switches, Same problems
+
+```ts
+interface SumType {
+  matchCase(cases: object): any
+}
+
+promise.matchCase({
+  Pending: () => console.log('Pending'),
+  Rejected: error => console.log(error),
+  Fulfilled: value => console.log(value),
+})
+```
+
+<===>
+
 ## Actually fixed!
 
 ```haskell
@@ -285,9 +317,38 @@ printPromise promise =
     (Rejected error) -> putStrLn "Rejected!" ++ error
 ```
 
+### Compiler is a cool guy
+
+- Cannot write non-total function
+- Cannot construct illegal promise
+- Cannot incorrectly pattern match
+
+
 Note: cannot construct illegal Promise, cannot pattern match illegally, notified in compile time B)
 
+<===>
+
+## Cool stuff
+
+```haskell
+fibonacci :: Int -> Int
+fibonacci 0 = 1
+fibonacci 1 = 1
+fibonacci x = fibonacci (x - 1) + fibonacci (x - 2)
+```
+
+```haskell
+head :: Array a -> Maybe a
+head []      = Nothing
+head [x]     = Just x -- not needed, but it's cool you can do that
+head (x: xs) = Just x
+```
+
+Note: dude wtf is Just/Nothing?
+
 ---
+
+## Declare with Invariants!
 
 ```haskell
 data Tree 
@@ -301,9 +362,32 @@ depth (Leaf n) = 1
 depth (Node l r) = 1 + max (depth l) (depth r)
 ```
 
+Note: Defining data structure in such a way using only type system, that you cannot construct an instance of that type that violates that invariant
+
 <===>
 
-## if (x != null)
+## Declare with Invariants!
+
+```haskell
+type alias Field =
+  Field
+   { fieldName : String
+   , selectionStatus: SelectionStatus
+   }
+
+type SelectionStatus
+    = Immutable
+    | Unselected
+    | Selected FieldRequirement
+
+type FieldRequirement
+    = Required
+    | Optional
+```
+
+<===>
+
+## if (x != null) - Bad
 
 ```ts
 class Vector {
@@ -323,12 +407,12 @@ if (v3 !== null) {
 ```
 <===>
 
-## Fixed
+## Better
 
 ```ts
 type Vector = NullVector | FullVector
 
-class Vector {
+class FullVector {
   /*...*/
   divide(that: Vector): Vector {
     if (that.x !== 0 || that.y !== 0)
@@ -346,6 +430,33 @@ const v3 = v1
   .divide(v2)
   .add(v5)
   .render()
+```
+
+<===>
+
+## The best
+
+```ts
+type Maybe<T> = Just<T> | Nothing
+
+class Vector {
+  divide(that: Vector): Maybe<Vector> {
+    if (that.x !== 0 || that.y !== 0)
+      return new Just(
+        new Vector(this.x / that.x, thix.y / that.y)
+      )
+    return new Nothing()
+  }
+}
+
+
+const v3 = v1
+  .divide(v2)
+  .chain(v => v.multiply(2))
+  .matchCase(
+    v => console.log(v.x, v.y),
+    () => console.log('Error')
+  )
 ```
 
 <===>
