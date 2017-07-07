@@ -18,10 +18,6 @@ css: './resources/style.css'
 
 ---
 
-![Comrade](./resources/lenin.jpg)
-
----
-
 ## Product Types
 
 ```ts
@@ -51,7 +47,8 @@ class Person {
 }
 
 class Box<T> {
-  constructor(private value: T) { /* ... */ } 
+  constructor(private value: T) { }
+  /* ... */ 
 }
 ```
 
@@ -62,7 +59,7 @@ data Person = Person
   , address :: String
   }
 
-data Box a = B a
+data Box a = Box a
 ```
 
 <===>
@@ -112,10 +109,6 @@ Note: You could say, this is a mathematical proof, that the order you define mem
 <===>
 
 ### Isomorphism
-
-```ts
-A ~~ B iff (A -> B && B -> A)
-```
 
 ```ts
 function swap<U, V>(pair: Pair<U, V>): Pair<V, U> {
@@ -182,51 +175,79 @@ data PromiseState = Pending | Fulfilled | Rejected
 
 <===>
 
+## More than just enums
+
 ```ts
-interface Either<U, V> {/* ... */}
-class Right<V> implements Either {/* ... */}
-class Left<U> implements Either {/* ... */}
+interface Optional<T> {/* ... */}
+class Some<T> implements Optional<T> {/* .. */}
+class None<T> implements Optional<T> {/* ... */}
 
 interface List<T> {/* ... */}
-class Nil {/*...*/}
-class Cons<T> {/* ... */}
-
-type Paragraph = string | Array<string>
+class Nil<T> implements List<T> {/* ... */}
+class Cons<T> implements List<T> {/* ... */}
 ```
 
 ```haskell
-data Either u v = Left u | Right v
+data Optional a = Some a | None
 
 data List a = Nil | Cons a (Array a)
-
-data Paragraph = String | Array String
 ```
-
-Note: Paragraph abstracts away low level types, You only think about it once
 
 <===>
 
-## Same Properties
-
 ```haskell
 a + b == b + a
+```
 
-Right a | Left b ~~ Left b | Right a
+```ts
+Result<Response, string> ~~ Result<string, Response>
+```
 
+```haskell
+Result Response String ~~ Result String Response
+```
 
+<===>
+
+```
 a + (b + c) == (a + b) + c
+```
 
-Pending | (Fulfilled | Rejected) ~~ (Pending | Fulfilled) | Rejected
+```ts
+Result<Result<Err, Ok>, number> ~~ Result<Err, Result<Ok, number>>
+```
 
+```haskell
+Result (Result Err Ok) Int ~~ Result Err (Result Ok Int)
+```
 
+<===>
+
+```
 a + 0 = a = 0 + a
+```
 
+```ts
+class Foo { /* ... */ }
+
+class Bar {
+  private Bar() {/* ... */}
+}
+
+Result<Foo, Bar> ~~ Foo
+```
+
+```haskell
 Foo a | Bar Void ~~ Foo a
 ```
 
 ---
 
-## Mixed
+## Distributive property
+
+```
+a * x + b * x + c * x == x * (a + b + c)
+```
 
 ```haskell
 data Promise u v
@@ -234,10 +255,6 @@ data Promise u v
   | Rejected (Array Listener) u
   | Fulfilled (Array Listener) v
 ```
-
-<===>
-
-## Distributive property
 
 ```haskell
 data Promise a b =
@@ -250,108 +267,59 @@ data Promise a b =
 
 ---
 
-## Pattern Matching
+## Expotential
 
-```js
-switch (true) {
-  case promise instanceof Fulfilled:
-    console.log('Fulfilled!', promise.value)
-    break
-  case promise instanceof Rejected:
-    console.log('Rejected!', promise.error)
-    break
-  default:
-    throw new TypeError("Lol, ain't gonna happen")
-}
-```
-
-Note: Misses `Pending` case
-
-<===>
-
-## "Fixed"
-
-```js
-switch (true) {
-  case promise instanceof Pending:
-    console.log('Pending!', promise.value)
-    break
-  case promise instanceof Fulfilled:
-    console.log('Fulfilled!', promise.value)
-    break
-  case promise instanceof Rejected:
-    console.log('Rejected!', promise.error)
-    break
-  default:
-    throw new TypeError("Lol, ain't gonna happen")
-}
-```
-
-Note: gets non-existent `value` property on `Pending` and doens't know in compile time
-
-<===>
-
-## No switches, Same problems
 
 ```ts
-interface SumType {
-  matchCase(cases: object): any
+function f(p: PromiseState): boolean {/* ... */}
+```
+
+```haskell
+f :: PromiseState -> Bool
+```
+
+```
+bᵃ
+```
+
+<===>
+
+```
+aᵇ * aᶜ = aᵇ⁺ᶜ
+```
+
+```ts
+interface PromiseStates<U, V> {
+    /* ... */
+    then<W>(
+        onFulfill: (value: U) => W,
+        onReject: (error: V) => W
+    ): W
+
+    // ~~
+
+    then<W>(
+      handler: (valueOrError: Result<U, V>) => W
+    ): W
 }
-
-promise.matchCase({
-  Pending: () => console.log('Pending'),
-  Rejected: error => console.log(error),
-  Fulfilled: value => console.log(value),
-})
-```
-
-<===>
-
-## Actually fixed!
-
-```haskell
-printPromise promise =
-  case p of
-    Pending -> putStrLn "Pending!"
-    (Fulfilled value) -> putStrLn "Fulfilled!" ++ value
-    (Rejected error) -> putStrLn "Rejected!" ++ error
-```
-
-### Compiler is a cool guy
-
-- Cannot write non-total function
-- Cannot construct illegal promise
-- Cannot incorrectly pattern match
-
-
-Note: cannot construct illegal Promise, cannot pattern match illegally, notified in compile time B)
-
-<===>
-
-## Cool stuff
-
-```haskell
-fibonacci :: Int -> Int
-fibonacci 0 = 1
-fibonacci 1 = 1
-fibonacci x = fibonacci (x - 1) + fibonacci (x - 2)
 ```
 
 ```haskell
-head :: Array a -> Maybe a
-head []      = Nothing
-head [x]     = Just x -- not needed, but it's cool you can do that
-head (x: xs) = Just x
+Pair (b -> a) (c -> a) ~~ Result b c -> a
 ```
-
-Note: dude wtf is Just/Nothing?
 
 ---
 
 ## Declare with Invariants!
 
+![Tree](./resources/tree.png)
+
+<===>
+
+## Declare with Invariants!
+
 ```haskell
-data Tree 
+data Tree
   = Empty
   | Leaf Int
   | Node Tree Tree
@@ -364,9 +332,11 @@ depth (Node l r) = 1 + max (depth l) (depth r)
 
 Note: Defining data structure in such a way using only type system, that you cannot construct an instance of that type that violates that invariant
 
-<===>
+---
 
-## Declare with Invariants!
+<img class="small" src="./resources/form.png" />
+
+<===>
 
 ```haskell
 type alias Field =
@@ -376,7 +346,7 @@ type alias Field =
    }
 
 type SelectionStatus
-    = Immutable
+    = Sealed
     | Unselected
     | Selected FieldRequirement
 
@@ -385,7 +355,7 @@ type FieldRequirement
     | Optional
 ```
 
-<===>
+---
 
 ## if (x != null) - Bad
 
@@ -437,15 +407,15 @@ const v3 = v1
 ## The best
 
 ```ts
-type Maybe<T> = Just<T> | Nothing
+type Optional<T> = Some<T> | None
 
 class Vector {
-  divide(that: Vector): Maybe<Vector> {
+  divide(that: Vector): Optional<Vector> {
     if (that.x !== 0 || that.y !== 0)
-      return new Just(
+      return new Some(
         new Vector(this.x / that.x, thix.y / that.y)
       )
-    return new Nothing()
+    return new None()
   }
 }
 
@@ -459,31 +429,6 @@ const v3 = v1
   )
 ```
 
-<===>
+---
 
-```haskell
-data Route
-  = Home
-  | Post Int
-  | Posts
-  | User Int
-  | UserPost Int Int
-  | Search String
-  | NotFound
-
-parseUrl :: Url -> Route
-parseUrl (Url "/Home" []) = Home
-parseUrl (Url "/Posts/:id" [id]) = Post id
-parseUrl (Url "UserPosts/:uID/:pID" [uID, pID]) = UserPost uID pID
-parseURl (Url "*") = NotFound
--- etc
-
-requestHandler :: Route -> IO Response
-requestHandler Home = homepage
-requestHandler (Post id) = postPage id
-requestHandler NotFound = notFoundPage
--- etc
-
-Server :: Request -> IO Response
-Server = requestHandler . parseUrl
-```
+# Thanks!
