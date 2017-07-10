@@ -68,7 +68,7 @@ data Box a = Box a
 
 ```ts
 class Pair<U, V> {
-    constructor(/* .. */) {}
+    constructor(/* .. */) { }
 }
 
 let pair = new Pair<Boolean, String>(false, "Foo")
@@ -112,7 +112,7 @@ Note: You could say, this is a mathematical proof, that the order you define mem
 
 ```ts
 function swap<U, V>(pair: Pair<U, V>): Pair<V, U> {
-  return new Pair<V, U>(pair.y, pair.x)  
+  return new Pair<V, U>(pair.y, pair.x)
 }
 ```
 
@@ -127,7 +127,7 @@ a * (b * c) == (a * b) * c == a * b * c
 ```csharp
 Pair<bool, Pair<int, string>>
 ~~
-Pair<Pair<bool, int>, string> 
+Pair<Pair<bool, int>, string>
 ~~
 Triplet<bool, int, string>
 ```
@@ -156,6 +156,12 @@ Pair Bool Unit ~~ Bool
 ```
 
 Note: Describe Unit
+
+<===>
+
+## Cartesian Product
+
+![cartesian](./resources/cartesian.png)
 
 ---
 
@@ -191,9 +197,16 @@ class Cons<T> implements List<T> {/* ... */}
 data Optional a = Some a | None
 
 data List a = Nil | Cons a (Array a)
+
+data Promise u v
+  = Pending (Array Listener)
+  | Rejected (Array Listener) u
+  | Fulfilled (Array Listener) v
 ```
 
 <===>
+
+## Symmetrical
 
 ```haskell
 a + b == b + a
@@ -209,19 +222,27 @@ Result Response String ~~ Result String Response
 
 <===>
 
+## Associative
+
 ```
-a + (b + c) == (a + b) + c
+(a + b) + c == a + (b + c)
 ```
 
 ```ts
-Result<Result<Err, Ok>, number> ~~ Result<Err, Result<Ok, number>>
+Result<Result<DBError, Response>, number>
+~~
+Result<DBError, Result<Response, number>>
 ```
 
 ```haskell
-Result (Result Err Ok) Int ~~ Result Err (Result Ok Int)
+Result (Result<DBError Response) Int
+~~
+Result<DBError (Result Response Int)
 ```
 
 <===>
+
+## Identity
 
 ```
 a + 0 = a = 0 + a
@@ -230,23 +251,46 @@ a + 0 = a = 0 + a
 ```ts
 class Foo { /* ... */ }
 
-class Bar {
-  private Bar() {/* ... */}
+class Void {
+  private Void() {/* ... */}
 }
 
-Result<Foo, Bar> ~~ Foo
+Result<Foo, Void> ~~ Foo
 ```
 
 ```haskell
-Foo a | Bar Void ~~ Foo a
+Foo a | Void ~~ Foo a
 ```
+
+<===>
+
+## Union
+
+<img class="small" src="./resources/union.png" />
+
 
 ---
 
-## Distributive property
+```ts
+class Pending<U,V> implements Promise<U, V> {
+  constructor(
+    private listeners: Array<Listener>
+  ) { }
+}
 
-```
-a * x + b * x + c * x == x * (a + b + c)
+class Rejected<U, V> implements Promise<U, V> {
+  constructor(
+    private listeners: Array<Listener>,
+    err: U
+  ) { }
+}
+
+class Fulfilled<U, V> implements Promise<U, V> {
+  constructor(
+    private listeners: Array<Listener>,
+    value: V
+  ) { }
+}
 ```
 
 ```haskell
@@ -256,18 +300,37 @@ data Promise u v
   | Fulfilled (Array Listener) v
 ```
 
+<===>
+
+## Distributive property
+
+```
+a * x + b * x + c * x == x * (a + b + c)
+```
+
+```ts
+type PromiseState<U, V> = Pending | Rejected<U> | Fulfilled<V>
+
+class Promise<U, V> {
+  constructor(
+    private listeners: Array<Listener>,
+    private state: PromiseState<U, V>
+  )
+}
+```
+
 ```haskell
-data Promise a b =
-  Promise (Array Listener) (
-      Pending
+data PromiseState a b
+    = Pending
     | Rejected a
     | Fulfilled b
-  )
+
+data Promise a b = Promise (Array Listener) (PromiseState a b)
 ```
 
 ---
 
-## Expotential
+## Expotential (Function) Type
 
 
 ```ts
@@ -279,21 +342,21 @@ f :: PromiseState -> Bool
 ```
 
 ```
-bᵃ
+a -> b ~~ bᵃ
 ```
 
 <===>
 
 ```
-aᵇ * aᶜ = aᵇ⁺ᶜ
+aᵇ * aᶜ == aᵇ⁺ᶜ
 ```
 
 ```ts
 interface PromiseStates<U, V> {
     /* ... */
     then<W>(
-        onFulfill: (value: U) => W,
-        onReject: (error: V) => W
+      onFulfill: (value: U) => W,
+      onReject: (error: V) => W
     ): W
 
     // ~~
@@ -308,6 +371,43 @@ interface PromiseStates<U, V> {
 Pair (b -> a) (c -> a) ~~ Result b c -> a
 ```
 
+<===>
+
+```
+c ^ (a * b) == (c ^ a) ^ b
+```
+
+```ts
+function f(a: number, b: string): boolean
+~~
+function f(a: number): ((b: string) => boolean)
+```
+
+```haskell
+f :: Pair Int String -> Bool
+~~
+f :: Int -> String -> Bool
+```
+
+---
+
+## Flags
+
+```ts
+type YesNo<T> = Yes<T> | No<T>
+
+Pair<string, boolean> ~~ YesNo<string>
+
+new Pair("barrab", true) ~~ new Yes("barrab")
+new Pair("foo", false) ~~ new No("foo")
+```
+
+```haskell
+data YesNo a = Yes a | No a
+
+Pair String Bool ~~ YesNo String
+```
+
 ---
 
 ## Declare with Invariants!
@@ -316,12 +416,43 @@ Pair (b -> a) (c -> a) ~~ Result b c -> a
 
 <===>
 
-## Declare with Invariants!
+## Naive approach
+
+```ts
+class Node<T> {
+  constructor(
+    left: Node,
+    value: T,
+    right: Node,
+  ) { }
+}
+```
 
 ```haskell
-data Tree
+data Node a = Node (Optional (Node a)) (Optional a) (Optional (Node a))
+
+depth :: Node a -> Int
+depth (Node left value right) =
+  case left of
+    None   -> ...
+    Some a ->
+      case right of
+        None -> ...
+        ...
+```
+
+<===>
+
+## Declare with Invariants!
+
+```ts
+type Tree<T> = Empty<T> | Leaf<T> | Node<T>
+```
+
+```haskell
+data Tree a
   = Empty
-  | Leaf Int
+  | Leaf a
   | Node Tree Tree
 
 depth :: Tree -> Int
@@ -339,7 +470,7 @@ Note: Defining data structure in such a way using only type system, that you can
 <===>
 
 ```haskell
-type alias Field =
+type Field =
   Field
    { fieldName : String
    , selectionStatus: SelectionStatus
@@ -353,6 +484,43 @@ type SelectionStatus
 type FieldRequirement
     = Required
     | Optional
+```
+
+<===>
+
+- No invalid states
+- You won't forget edge cases
+- Compiler is your friend
+
+---
+
+## Recursive Types
+
+```tex
+L(a) = 1 + (a * L(a))
+     = 1 + a * (1 + a * L(a))
+     = 1 + a + (a * a * L(a))
+     = ...
+```
+
+```ts
+interface List<T> {/*...*/}
+class Nil<T> implements List<T> {/* ... */}
+class Cons<T> implements List<T> {/* ... */}
+
+let l: List<Number> =
+  new Cons(
+    3, new Cons(
+      4, new Cons(
+        new Nil()
+      )
+    )
+  )
+// 3 -> 4 -> Nil
+```
+
+```haskell
+data List a = Nil | Cons a (List a)
 ```
 
 ---
