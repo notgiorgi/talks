@@ -92,9 +92,7 @@ pair = Pair False "Foo"
 
 ### Symmetrical
 
-```
-a * b == b * a
-```
+`a * b == b * a`
 
 ```ts
 Pair<Boolean, String> ~~ Pair<String, Boolean>
@@ -110,6 +108,16 @@ Note: You could say, this is a mathematical proof, that the order you define mem
 
 ### Isomorphism
 
+```haskell
+to   :: A -> B
+from :: B -> A
+```
+
+```ts
+to(from(x)) == x == from(to(x))
+```
+
+
 ```ts
 function swap<U, V>(pair: Pair<U, V>): Pair<V, U> {
   return new Pair<V, U>(pair.y, pair.x)
@@ -120,14 +128,12 @@ function swap<U, V>(pair: Pair<U, V>): Pair<V, U> {
 
 ### Associative
 
-```
-a * (b * c) == (a * b) * c == a * b * c
-```
+`a * (b * c) == (a * b) * c == a * b * c`
 
 ```csharp
-Pair<bool, Pair<int, string>>
-~~
 Pair<Pair<bool, int>, string>
+~~
+Pair<bool, Pair<int, string>>
 ~~
 Triplet<bool, int, string>
 ```
@@ -140,9 +146,7 @@ Pair Bool (Pair Int String) ~~ Pair (Pair Bool Int) String
 
 ### Identity
 
-```
-a * 1 == a == 1 * a
-```
+`a * 1 == a == 1 * a`
 
 ```ts
 Pair<Boolean, Unit> ~~ Boolean
@@ -196,7 +200,7 @@ class Cons<T> implements List<T> {/* ... */}
 ```haskell
 data Optional a = Some a | None
 
-data List a = Nil | Cons a (Array a)
+data List a = Nil | Cons a (List a)
 
 data Promise u v
   = Pending (Array Listener)
@@ -208,9 +212,7 @@ data Promise u v
 
 ## Symmetrical
 
-```haskell
-a + b == b + a
-```
+`a + b == b + a`
 
 ```ts
 Result<Response, string> ~~ Result<string, Response>
@@ -224,9 +226,7 @@ Result Response String ~~ Result String Response
 
 ## Associative
 
-```
-(a + b) + c == a + (b + c)
-```
+`(a + b) + c == a + (b + c)`
 
 ```ts
 Result<Result<DBError, Response>, number>
@@ -244,9 +244,7 @@ Result<DBError (Result Response Int)
 
 ## Identity
 
-```
-a + 0 = a = 0 + a
-```
+`a + 0 = a = 0 + a`
 
 ```ts
 class Foo { /* ... */ }
@@ -304,9 +302,7 @@ data Promise u v
 
 ## Distributive property
 
-```
-a * x + b * x + c * x == x * (a + b + c)
-```
+`a * x + c * x == x * (a + b)`
 
 ```ts
 type PromiseState<U, V> = Pending | Rejected<U> | Fulfilled<V>
@@ -470,18 +466,14 @@ Note: Defining data structure in such a way using only type system, that you can
 <===>
 
 ```haskell
-type Field =
-  Field
-   { fieldName : String
-   , selectionStatus: SelectionStatus
-   }
+data Field = Field String SelectionStatus
 
-type SelectionStatus
+data SelectionStatus
     = Sealed
     | Unselected
     | Selected FieldRequirement
 
-type FieldRequirement
+data FieldRequirement
     = Required
     | Optional
 ```
@@ -509,17 +501,16 @@ class Nil<T> implements List<T> {/* ... */}
 class Cons<T> implements List<T> {/* ... */}
 
 let l: List<Number> =
-  new Cons(
-    3, new Cons(
-      4, new Cons(
-        new Nil()
-      )
+  new Cons(3,
+    new Cons(4,
+      new Nil()
     )
   )
 // 3 -> 4 -> Nil
 ```
 
 ```haskell
+--            1   +      1 * L(x)
 data List a = Nil | Cons a (List a)
 ```
 
