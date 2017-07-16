@@ -328,24 +328,19 @@ data Promise a b = Promise (Array Listener) (PromiseState a b)
 
 ## Expotential (Function) Type
 
+a → b ~~ b<sup>a</sup>
 
 ```ts
-function f(p: PromiseState): boolean {/* ... */}
+function f(p: PromiseState): Boolean {/* ... */}
 ```
 
 ```haskell
 f :: PromiseState -> Bool
 ```
 
-```
-a -> b ~~ bᵃ
-```
-
 <===>
 
-```
-aᵇ * aᶜ == aᵇ⁺ᶜ
-```
+a<sup>b</sup> * a<sup>c</sup> == a<sup>b + c</sup>
 
 ```ts
 interface PromiseStates<U, V> {
@@ -369,9 +364,7 @@ Pair (b -> a) (c -> a) ~~ Result b c -> a
 
 <===>
 
-```
-c ^ (a * b) == (c ^ a) ^ b
-```
+c<sup>(a * b)</sup> == (c<sup>a</sup>)<sup>b</sup>
 
 ```ts
 function f(a: number, b: string): boolean
