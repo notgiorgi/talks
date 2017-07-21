@@ -95,10 +95,12 @@ pair = Pair False "Foo"
 `a * b == b * a`
 
 ```ts
+Pair<U,V> ~~ Pair<V, U>
 Pair<Boolean, String> ~~ Pair<String, Boolean>
 ```
 
 ```haskell
+Pair u v ~~ Pair v u
 Pair Bool String ~~ Pair String Bool
 ```
 
@@ -131,15 +133,15 @@ function swap<U, V>(pair: Pair<U, V>): Pair<V, U> {
 `a * (b * c) == (a * b) * c == a * b * c`
 
 ```csharp
-Pair<Pair<bool, int>, string>
+Pair<Pair<U, V>, W>
 ~~
-Pair<bool, Pair<int, string>>
+Pair<U, Pair<V, W>>
 ~~
-Triplet<bool, int, string>
+Triplet<U, V, W>
 ```
 
 ```
-Pair Bool (Pair Int String) ~~ Pair (Pair Bool Int) String
+Pair u (Pair v w) ~~ Pair (u Bool v) w
 ```
 
 <===>
@@ -149,14 +151,12 @@ Pair Bool (Pair Int String) ~~ Pair (Pair Bool Int) String
 `a * 1 == a == 1 * a`
 
 ```ts
-Pair<Boolean, Unit> ~~ Boolean
+Pair<T, Unit> ~~ T
 ```
 
 
 ```haskell
-data Unit = Unit
-
-Pair Bool Unit ~~ Bool
+Pair T Unit ~~ Bool
 ```
 
 Note: Describe Unit
