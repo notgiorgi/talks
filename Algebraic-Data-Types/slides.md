@@ -68,10 +68,10 @@ data Box a = Box a
 
 ```ts
 class Pair<U, V> {
-    constructor(/* .. */) { }
+    constructor(x: U, y: V) { }
 }
 
-let pair = new Pair<Boolean, String>(false, "Foo")
+let pair = new Pair<boolean, string>(false, "Foo")
 ```
 
 ```haskell
@@ -96,7 +96,7 @@ pair = Pair False "Foo"
 
 ```ts
 Pair<U,V> ~~ Pair<V, U>
-Pair<Boolean, String> ~~ Pair<String, Boolean>
+Pair<boolean, string> ~~ Pair<string, boolean>
 ```
 
 ```haskell
@@ -367,15 +367,15 @@ Pair (b -> a) (c -> a) ~~ Result b c -> a
 c<sup>(a * b)</sup> == (c<sup>a</sup>)<sup>b</sup>
 
 ```ts
-function f(a: number, b: string): boolean
+function f(a: U, b: V): W
 ~~
-function f(a: number): ((b: string) => boolean)
+function f(a: U): ((b: V) => W)
 ```
 
 ```haskell
-f :: Pair Int String -> Bool
+f :: Pair u v -> w
 ~~
-f :: Int -> String -> Bool
+f :: u -> v -> w
 ```
 
 ---
@@ -532,20 +532,20 @@ if (v3 !== null) {
 ## Better
 
 ```ts
-type Vector = NullVector | FullVector
+interface Vector {/* ... */}
 
-class FullVector {
-  /*...*/
+class FullVector implements Vector{
   divide(that: Vector): Vector {
     if (that.x !== 0 || that.y !== 0)
       return new FullVector(this.x / that.x, thix.y / that.y)
     return new NullVector()
   }
+  render() {/* ... */}
 }
 
-class NullVector {
-  /*...*/
+class NullVector implements Vector {
   divide(that: Vector): Vector { return this }
+  render() {/* ... */}  
 }
 
 const v3 = v1
